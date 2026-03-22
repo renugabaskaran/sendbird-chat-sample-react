@@ -10,6 +10,7 @@ import {
 
 import { SENDBIRD_INFO } from '../constants/constants';
 import { timestampToTime, handleEnterPress } from '../utils/messageUtils';
+import toast, { Toaster } from 'react-hot-toast';
 let sb;
 
 const BasicGroupChannelSample = (props) => {
@@ -69,6 +70,8 @@ const BasicGroupChannelSample = (props) => {
             const updatedMessages = [...stateRef.current.messages, ...messages];
 
             updateState({ ...stateRef.current, messages: updatedMessages });
+            toast(messages[0].sender.userId+':'+messages[0].message);
+            console.log('=============',messages);
 
         },
         onMessagesUpdated: (context, channel, messages) => {
@@ -348,6 +351,16 @@ const BasicGroupChannelSample = (props) => {
                 channel={state.currentlyJoinedChannel}
                 handleMemberInvite={handleMemberInvite}
             />
+            <Toaster
+                toastOptions={{
+                className: '',
+                style: {
+                border: '1px solid #713200',
+                padding: '16px',
+                color: '#713200',
+    },
+  }}
+/>
         </>
     );
 };
@@ -371,7 +384,7 @@ const ChannelList = ({
                         <div
                             className="channel-list-item-name"
                             onClick={() => { handleJoinChannel(channel.url) }}>
-                            <ChannelName members={channel.members} />
+                            <ChannelName members={channel.members} customType={channel.customType} />
                             <div className="last-message">{channel.lastMessage?.message}</div>
                         </div>
                         <div>
@@ -385,7 +398,7 @@ const ChannelList = ({
         </div >);
 }
 
-const ChannelName = ({ members }) => {
+const ChannelName = ({ members,customType}) => {
     const membersToDisplay = members.slice(0, 2);
     const membersNotToDisplay = members.slice(2);
 
@@ -393,7 +406,8 @@ const ChannelName = ({ members }) => {
         {membersToDisplay.map((member) => {
             return <span key={member.userId}>{member.nickname}</span>
         })}
-        {membersNotToDisplay.length > 0 && `+ ${membersNotToDisplay.length}`}
+        {/* {membersNotToDisplay.length > 0 && `+ ${membersNotToDisplay.length}`} */}
+        -{customType}
     </>
 }
 
@@ -586,6 +600,7 @@ const CreateUserForm = ({
 const loadChannels = async (channelHandlers) => {
     const groupChannelFilter = new GroupChannelFilter();
     groupChannelFilter.includeEmpty = true;
+    groupChannelFilter.customTypesFilter=['Renuga'];
 
     const collection = sb.groupChannel.createGroupChannelCollection({
         filter: groupChannelFilter,
@@ -625,6 +640,7 @@ const createChannel = async (channelName, userIdsToInvite) => {
         groupChannelParams.invitedUserIds = userIdsToInvite;
         groupChannelParams.name = channelName;
         groupChannelParams.operatorUserIds = userIdsToInvite;
+        groupChannelParams.customType='Renuga';
         const groupChannel = await sb.groupChannel.createChannel(groupChannelParams);
         return [groupChannel, null];
     } catch (error) {
